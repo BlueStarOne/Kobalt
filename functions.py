@@ -5,7 +5,6 @@
 
 # imports
 import json
-import requests
 
 
 # functions

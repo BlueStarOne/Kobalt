@@ -10,8 +10,8 @@ import tkinter as tk
 import functions as fct
 import os
 import shutil
-import time
 import random
+import requests
 
 
 # code
@@ -23,7 +23,7 @@ def kobalt_version_check():
         data = response.json()
         latest_version = data["kobaltVersion"]
         
-        if latest_version > current_version:
+        if latest_version > str(fct.read_json("kobaltVersion")):
             clear_gui()
             
             update = ctk.CTkLabel(root, text="New update available!", text_color="white", font=("Arial", 32), wraplength=600)
@@ -290,14 +290,14 @@ root = ctk.CTk()
 root.title("Kobalt")
 root.geometry("700x500")
 
-kobalt_version_check()
+if not kobalt_version_check():
 
-if fct.read_json('firstLaunch') == 'True':
+    if fct.read_json('firstLaunch') == 'True':
 
-    startup_page_1()
+        startup_page_1()
 
-else :
+    else :
 
-    main_page()
+        main_page()
 
 root.mainloop()
