@@ -5,6 +5,7 @@
 
 # imports
 import json
+import requests
 
 
 # functions
@@ -45,3 +46,21 @@ def read_json(key, filename="settings.json"):
         log("Invalid JSON format")
     except Exception as e:
         log(f"Unexpected error: {e}")
+
+
+
+def validate_username(username, *args):
+        """Limit to 15 chars and allow only alphanumeric"""
+        content = username.get("0.0", "end-1c")  # Get all text
+        
+        # Remove non-alphanumeric characters
+        filtered = ''.join(c for c in content if c.isalnum())
+        
+        # Limit to 15 characters
+        if len(filtered) > 15:
+            filtered = filtered[:15]
+        
+        # Update if changed
+        if filtered != content:
+            username.delete("0.0", "end")
+            username.insert("0.0", filtered)
