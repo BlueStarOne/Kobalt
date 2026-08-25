@@ -23,7 +23,7 @@ def kobalt_version_check():
         data = response.json()
         latest_version = data["kobaltVersion"]
         
-        if latest_version > str(fct.read_json("kobaltVersion")):
+        if latest_version > int(fct.read_json("kobaltVersion")):
             clear_gui()
             
             update = ctk.CTkLabel(root, text="New update available!", text_color="white", font=("Arial", 32), wraplength=600)
