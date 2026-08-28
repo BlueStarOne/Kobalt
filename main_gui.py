@@ -5,6 +5,7 @@
 
 
 # imports
+
 import customtkinter as ctk
 import tkinter as tk
 import functions as fct
@@ -12,26 +13,50 @@ import os
 import shutil
 import random
 import requests
+import webbrowser
+import CTkMenuBar
+from CTkMessagebox import CTkMessagebox
+from PIL import Image
 
+# variables
+
+check_for_updates = "Check for updates"
 
 # code
 
-def kobalt_version_check():
+def kobalt_version_check(is_triggered_by_user = False):
     url = "https://raw.githubusercontent.com/BlueStarOne/Kobalt/refs/heads/main/settings.json"
     try:
         response = requests.get(url, timeout=2)
         data = response.json()
         latest_version = data["kobaltVersion"]
         
-        if latest_version > int(fct.read_json("kobaltVersion")):
+        if latest_version > str(fct.read_json("kobaltVersion")):
             clear_gui()
             
             update = ctk.CTkLabel(root, text="New update available!", text_color="white", font=("Arial", 32), wraplength=600)
             update.pack(pady=50)
 
-            label = ctk.CTkLabel(root, text=f"New version available: {latest_version}\n\nChangelog: {data['kobaltChangelog']}", text_color="white", font=("Arial", 16), wraplength=600)
+            label = ctk.CTkLabel(root, text=f"New version available: v{latest_version}\n\nChangelog: {data['kobaltChangelog']}", text_color="white", font=("Arial", 16), wraplength=600)
             label.pack(pady=10)
+
+            button = ctk.CTkButton(
+                root,
+                text='Download', 
+                command=lambda: webbrowser.open_new("https://github.com/BlueStarOne/Kobalt/releases"),
+                fg_color="#0073ff",
+                hover_color="#2600ff",
+                text_color="white"
+            )
+            button.pack(side="bottom", padx=10, pady=50)
+
             return True
+        
+        if is_triggered_by_user:
+            message = CTkMessagebox(title="No new update found", message="You are running the latest Kobalt version", icon="info", option_1="OK")
+            if message.get() == "OK":
+                root.detroy
+            return
         return False
     except:
         return None  # Network error
@@ -41,7 +66,8 @@ def kobalt_version_check():
 
 def clear_gui():
     for widget in root.winfo_children():
-        widget.destroy()
+        if widget != menu:  # Skip the menu
+            widget.destroy()
 
 def select_file():
     global textbox
@@ -83,6 +109,7 @@ def copy_files_to_game_directory(filepath):
 
 
 def startup_page_1():
+    clear_gui()
     label = ctk.CTkLabel(root, text="Welcome to Kobalt, first custom launcher for BBR2: Island Adventure.\n\nKobalt will bring you the joys of multiplayer directly within your game.\n\nTo use Kobalt, you need to own a legal copy of Beach Buggy Racing 2: Island Adventure\n\nPlease follow the upcoming instructions!\n\nKobalt was created by Nauzea (core multiplayer code) and BlueStar1 (app)", text_color="white", font=("Arial", 16))
     label.pack(pady=50)
     button = ctk.CTkButton(
@@ -250,15 +277,23 @@ def startup_page_6():
     fct.update_json("firstLaunch", "False")
     root.after(5000, main_page)
 
+
+# mainpage
+
 def main_page():
     clear_gui()
+    img = ctk.CTkImage(light_image=Image.open("kobalt.png"), dark_image=Image.open("kobalt.png"), size=(566, 148))
+
+    label = ctk.CTkLabel(root,text=None, image=img, fg_color='transparent')
+    label.pack(pady=50)
+
     frame = ctk.CTkFrame(root, fg_color='transparent')
-    frame.pack(pady=200)
+    frame.pack(pady=10)
 
     button = ctk.CTkButton(
         frame,
         text='Join a server', 
-        command=select_file,
+        command=join_servers_page,
         height=30,
         fg_color="#0073ff",
         hover_color="#2600ff",
@@ -269,7 +304,7 @@ def main_page():
     button2 = ctk.CTkButton(
         frame,
         text='Create a server', 
-        command=select_file,
+        command=lambda: kobalt_version_check(True),
         height=30,
         fg_color="#0073ff",
         hover_color="#2600ff",
@@ -279,7 +314,16 @@ def main_page():
     
 
 
+# Join a server
 
+def join_servers_page():
+    clear_gui()
+    img = ctk.CTkImage(light_image=Image.open("kobalt.png"), dark_image=Image.open("kobalt.png"), size=(566, 148))
+    
+    label = ctk.CTkLabel(root,text=None, image=img, fg_color='transparent')
+    label.pack(pady=50)
+    serverlist = ctk.CTkScrollableFrame(root, width=200, height=200)
+    serverlist.pack()
 
 
 
@@ -289,6 +333,21 @@ global root
 root = ctk.CTk()
 root.title("Kobalt")
 root.geometry("700x500")
+
+# menu
+
+menu = CTkMenuBar.CTkTitleMenu(master=root, x_offset=100, y_offset=7)
+
+edit_button = menu.add_cascade("Edit")
+edit_dropdown = CTkMenuBar.CustomDropdownMenu(widget=edit_button)
+edit_dropdown.add_option(option="Preferences", command="")
+
+about_button = menu.add_cascade("Help")
+about_dropdown = CTkMenuBar.CustomDropdownMenu(widget=about_button, separator_color="white")
+about_dropdown.add_option(option="Restart tutorial", command=startup_page_1)
+about_dropdown.add_option(option="Check for updates", command=lambda: kobalt_version_check(True))
+about_dropdown.add_option(option="About", command="")
+
 
 if not kobalt_version_check():
 
